@@ -40,6 +40,14 @@ executable advoc2016-day3
   build-depends:       base
   default-language:    Haskell2010
 
+executable advoc2016-day4
+  hs-source-dirs:      src/Day4
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  build-depends:       base
+                     , parsec
+  default-language:    Haskell2010
+
 
 source-repository head
   type:     git

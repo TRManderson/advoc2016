@@ -20,6 +20,8 @@ executable advoc2016-day1
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
   build-depends:       base
                      , split
+                     , transformers
+                     , containers
   default-language:    Haskell2010
 
 executable advoc2016-day2

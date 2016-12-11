@@ -66,11 +66,25 @@ runInstruction (Rect a b) = \arr -> arr // zip (range ((0,0), (a-1,b-1))) (repea
 runInstruction (RotateRow a b) = rotateRow b a
 runInstruction (RotateCol a b) = rotateCol b a
 
-reduce :: Array (Int, Int) Bool -> Int
-reduce = length . filter id . elems
+main' :: ([Instruction] -> IO ()) -> IO ()
+main' transform = join $ transform . mapMaybe parseInstruction . T.lines <$> T.getContents
 
-main = do
-  instrs <- mapMaybe parseInstruction . T.lines <$> T.getContents
-  let steps = scanl (flip runInstruction) initial instrs
-  traverse print steps
-  print . reduce . last $ steps
+executeInstructions :: [Instruction] -> Array (Int, Int) Bool
+executeInstructions = foldl' (flip runInstruction) initial
+
+main1 = print . length . filter id . elems . executeInstructions
+
+main2 = putStrLn . prettyPrint . executeInstructions
+
+prettyPrint :: Array (Int, Int) Bool -> String
+prettyPrint arr = unlines chars
+  where
+    toChars True = '█'
+    toChars False = ' '
+    charArr = fmap toChars arr
+    ((minRow, minCol), (maxRow, maxCol)) = bounds arr
+    idxs = [[(row, col) | col <- [minCol..maxCol]] | row <- [minRow..maxRow]]
+    chars = (fmap.fmap) (charArr !) idxs
+
+
+main = main' main2

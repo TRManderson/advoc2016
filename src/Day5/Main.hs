@@ -23,7 +23,7 @@ keys = filter ((== "00000") . B.take 5) .
 
 
 
-ugh :: Array Int (Maybe Char) -> [B.ByteString] -> [Char]
+ugh :: Array Int (Maybe Char) -> [B.ByteString] -> String
 ugh a (b:bs) = let
     pos = read . (:[]) . B.head . B.drop 5 $ b
     val = B.head . B.drop 6 $ b

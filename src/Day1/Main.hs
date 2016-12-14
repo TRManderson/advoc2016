@@ -1,3 +1,4 @@
+{-# LANGUAGE Safe #-}
 module Main where
 import Data.Monoid ((<>))
 import Data.List.Split (splitOn )

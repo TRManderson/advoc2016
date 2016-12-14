@@ -1,3 +1,4 @@
+{-# LANGUAGE Safe #-}
 module Main where
 import Data.List.Split (splitOn)
 import Data.List (intersect)

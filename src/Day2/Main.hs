@@ -1,3 +1,4 @@
+{-# LANGUAGE Safe #-}
 module Main where
 import Data.Ix (inRange)
 import Data.List (foldl', scanl')

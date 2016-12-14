@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Safe #-}
 module Main where
 import Data.Attoparsec.Text
 import Data.Array -- gets me Data.Ix for free

@@ -1,3 +1,4 @@
+{-# LANGUAGE Safe #-}
 module Main where
 import Data.List
 import Data.Char
@@ -61,4 +62,4 @@ decrypt = inner &&& roomId
     inner (Room names roomId _) = intercalate "-" $ (fmap.fmap) (shift roomId) names
 
 
-main = join $ traverse id . map print . map decrypt . filter valid . parseInput <$> getContents
+main = join $ traverse id . map (print . decrypt) . filter valid . parseInput <$> getContents

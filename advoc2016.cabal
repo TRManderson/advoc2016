@@ -17,7 +17,7 @@ cabal-version:       >=1.10
 executable advoc2016-day1
   hs-source-dirs:      src/Day1
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  ghc-options:         -threaded -Wunsafe -rtsopts -with-rtsopts=-N4
   build-depends:       base
                      , split
                      , transformers
@@ -27,7 +27,7 @@ executable advoc2016-day1
 executable advoc2016-day2
   hs-source-dirs:      src/Day2
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  ghc-options:         -threaded -Wunsafe -rtsopts -with-rtsopts=-N4
   build-depends:       base
                      , split
                      , array
@@ -36,21 +36,21 @@ executable advoc2016-day2
 executable advoc2016-day3
   hs-source-dirs:      src/Day3
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  ghc-options:         -threaded -Wunsafe -rtsopts -with-rtsopts=-N4
   build-depends:       base
   default-language:    Haskell2010
 
 executable advoc2016-day4
   hs-source-dirs:      src/Day4
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  ghc-options:         -threaded -Wunsafe -rtsopts -with-rtsopts=-N4
   build-depends:       base
   default-language:    Haskell2010
 
 executable advoc2016-day5
   hs-source-dirs:      src/Day5
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  ghc-options:         -threaded -Wunsafe -rtsopts -with-rtsopts=-N4
   build-depends:       base
                      , cryptohash
                      , bytestring
@@ -62,14 +62,14 @@ executable advoc2016-day5
 executable advoc2016-day6
   hs-source-dirs:      src/Day6
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  ghc-options:         -threaded -Wunsafe -rtsopts -with-rtsopts=-N4
   build-depends:       base
   default-language:    Haskell2010
 
 executable advoc2016-day7
   hs-source-dirs:      src/Day7
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  ghc-options:         -threaded -Wunsafe -rtsopts -with-rtsopts=-N4
   build-depends:       base
                      , split
   default-language:    Haskell2010
@@ -77,7 +77,7 @@ executable advoc2016-day7
 executable advoc2016-day8
   hs-source-dirs:      src/Day8
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N4
   build-depends:       base
                      , attoparsec
                      , text
@@ -87,7 +87,7 @@ executable advoc2016-day8
 executable advoc2016-day9
   hs-source-dirs:      src/Day9
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N4
   build-depends:       base
   default-language:    Haskell2010
 

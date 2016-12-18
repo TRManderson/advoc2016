@@ -8,7 +8,6 @@ import qualified Data.Map as M
 import qualified Data.Array as A
 import Data.Maybe (mapMaybe)
 import Control.Monad (join)
-import Debug.Trace (traceShow, traceShowId)
 
 data Instruction = Copy Char Char
                  | CopyVal Int Char
@@ -86,8 +85,11 @@ instance Show MachineState where
 
 
 initialState :: [Instruction] -> MachineState
-initialState instrs = MachineState instrArray (M.fromList $ zip ['a'..'d'] $ repeat 0) 0
+initialState instrs = MachineState instrArray regs 0
   where
+    regs1 = M.fromList $ zip ['a'..'d'] $ repeat 0
+    regs2 = M.insert 'c' 1 regs1
+    regs = regs2
     instrArray = A.listArray (0, length instrs -1) instrs
 
 exec :: MachineState -> MachineState
@@ -120,10 +122,10 @@ foldShit m@(MachineState instrs _ curr) =
   if not (A.inRange (A.bounds instrs) curr) then
     m
   else
-    foldShit . exec . traceShow (currentInstructionPtr m, M.toList . registers $ m) $ m
+    foldShit . exec $ m
 
 execToCompletion :: [Instruction] -> MachineState
-execToCompletion = foldShit . initialState . traceShowId
+execToCompletion = foldShit . initialState
 
 maybeParser :: Parser a -> T.Text -> Maybe a
 maybeParser parser = maybeResult . flip feed "". parse parser

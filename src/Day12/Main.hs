@@ -4,7 +4,6 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Attoparsec.Text
 import Data.Char (isLower)
-import qualified Data.Map as M
 import qualified Data.Array as A
 import Data.Maybe (mapMaybe)
 import Control.Monad (join)
@@ -75,7 +74,7 @@ instructionParser = choice
 
 data MachineState = MachineState
   { instructions :: A.Array Int Instruction
-  , registers :: M.Map Char Int
+  , registers :: A.Array Char Int
   , currentInstructionPtr :: Int
   }
 
@@ -87,8 +86,8 @@ instance Show MachineState where
 initialState :: [Instruction] -> MachineState
 initialState instrs = MachineState instrArray regs 0
   where
-    regs1 = M.fromList $ zip ['a'..'d'] $ repeat 0
-    regs2 = M.insert 'c' 1 regs1
+    regs1 = A.listArray ('a', 'd') $ repeat 0
+    regs2 = regs1 A.// [('c', 1)]
     regs = regs2
     instrArray = A.listArray (0, length instrs -1) instrs
 
@@ -98,15 +97,15 @@ exec m = execInstr instr m
 
 execInstr :: Instruction -> MachineState -> MachineState
 execInstr (Copy regFrom regTo) (MachineState instrs regs curr) =
-  MachineState instrs (M.insert regTo (regs M.! regFrom) regs) (curr+1)
+  MachineState instrs (regs A.// [(regTo, regs A.! regFrom)]) (curr+1)
 execInstr (CopyVal val reg) (MachineState instrs regs curr) =
-  MachineState instrs (M.insert reg val regs)  (curr+1)
+  MachineState instrs (regs A.// [(reg, val)])  (curr+1)
 execInstr (Inc reg) (MachineState instrs regs curr) =
-  MachineState instrs (M.update (Just . (+1)) reg regs) (curr+1)
+  MachineState instrs (regs A.// [(reg, regs A.! reg +1)]) (curr+1)
 execInstr (Dec reg) (MachineState instrs regs curr) =
-  MachineState instrs (M.update (Just . flip (-) 1) reg regs) (curr+1)
+  MachineState instrs (regs A.// [(reg, regs A.! reg -1)]) (curr+1)
 execInstr (Jump c j) (MachineState instrs regs curr) =
-  if (regs M.! c) == 0 then
+  if (regs A.! c) == 0 then
     MachineState instrs regs (curr + 1)
   else
     MachineState instrs regs (curr + j)

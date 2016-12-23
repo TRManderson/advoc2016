@@ -5,12 +5,10 @@ import qualified Data.Text.IO as T
 import Data.Attoparsec.Text hiding (match)
 import Data.Maybe
 import Control.Monad
-import Data.Graph.Inductive.PatriciaTree (Gr)
-import Data.Graph.Inductive.Graph
-import Data.Graph.Inductive.Query.DFS (topsort)
 import Data.List (nub, sort, sortOn, uncons)
 import qualified Data.Map as M
-import Data.Graph.Inductive.Dot
+import Control.Concurrent
+import Control.Concurrent.Async
 
 data Location = Value Int | Bot Int | Output Int deriving (Ord, Show, Eq)
 data Endpoint = Give Location | Compare Location Location
@@ -46,36 +44,51 @@ parser = choice [ parseCompare
                 , parseGive
                 ]
 
+maybeParser :: Parser a -> T.Text -> Maybe a
+maybeParser p = maybeResult . flip feed "" . parse p
+
 extractLocations :: Transition -> [Location]
 extractLocations (Transition a (Give b)) = [a, b]
 extractLocations (Transition a (Compare b c)) = [a, b, c]
 
-makeContext :: M.Map Location Int -> Transition -> [Context Location Ordering]
-makeContext m (Transition a (Give b)) =
-  [ ([(EQ, m M.! a)], m M.! b, b, [])
-  , ([], m M.! a, a, [])
-  ]
-makeContext m (Transition from (Compare toLow toHigh)) =
-  [ ([], m M.! from, from, [(LT, m M.! toLow), (GT, m M.! toHigh)])
-  , ([], m M.! toLow, toLow, [])
-  , ([], m M.! toHigh, toHigh, [])
-  ]
+type Channel = Chan Int
+execTransition :: M.Map Location Channel -> Transition -> IO ()
+execTransition locChans (Transition from (Give to)) = do
+  let inputChan = locChans M.! from
+      outputChan = locChans M.! to
+  readChan inputChan >>= writeChan outputChan
+execTransition locChans (Transition from (Compare lower upper)) = do
+  let inputChan = locChans M.! from
+      lowerChan = locChans M.! lower
+      upperChan = locChans M.! upper
+  [lowerVal, upperVal] <- sort <$> sequence [readChan inputChan, readChan inputChan]
+  when ([lowerVal, upperVal] == [17, 61]) $ print from
+  writeChan upperChan upperVal
+  writeChan lowerChan lowerVal
 
-makeGraph :: DynGraph g => [Transition] -> g Location Ordering
-makeGraph transitions = mkGraph nodes edges
-  where
-    locations = transitions >>= sort . nub . extractLocations
-    locMap = M.fromList $ zip locations [1..]
-    contexts = transitions >>= makeContext locMap
-    nodes = nub . map (\(_, n, l, _) -> (n, l)) $ contexts
-    edgesFromContext (pre, n, l, post) = mconcat
-      [ map (\(label, from) -> (from, n, label)) pre
-      , map (\(label, to) -> (n, to, label)) post
-      ]
-    edges = nub $ contexts >>= edgesFromContext
+mkChannels :: [Location] -> IO (M.Map Location Channel)
+mkChannels locs = M.fromList <$> traverse (\a -> (,) a <$> newChan) locs
 
-readGraph :: T.Text -> Gr Location Ordering
-readGraph = makeGraph . mapMaybe (maybeResult . flip feed "" . parse parser) . T.lines
+startGraph :: M.Map Location Channel -> IO ()
+startGraph chanMap = forM_ (M.keys chanMap) $ \loc ->
+  case loc of
+    Value x -> writeChan (chanMap M.! loc) x
+    _ -> return ()
 
-main = T.getContents >>= putStrLn . showDot . fglToDot . readGraph
+finishGraph :: M.Map Location Channel -> IO [Async  ()]
+finishGraph chanMap = forM (M.keys chanMap) $ \loc ->
+  async $ case loc of
+    Output x -> when (x <= 2) $ do
+      val <- readChan (chanMap M.! loc)
+      putStrLn $ "Output " ++ show x ++ ": " ++ show val
+    _ -> return ()
 
+main = do
+  transitions <- mapMaybe (maybeParser parser) . T.lines <$> T.getContents
+  let locations = nub $ transitions >>= extractLocations
+  chanMap <- mkChannels locations
+  startGraph chanMap
+  actions <- traverse (async . execTransition chanMap) transitions
+  outputs <- finishGraph chanMap
+  traverse wait (actions ++ outputs)
+  return ()

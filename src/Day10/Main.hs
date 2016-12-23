@@ -10,13 +10,14 @@ import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.Query.DFS (topsort)
 import Data.List (nub, sort, sortOn, uncons)
 import qualified Data.Map as M
-import Control.Monad.Trans.State
+import Data.Graph.Inductive.Dot
 
 data Location = Value Int | Bot Int | Output Int deriving (Ord, Show, Eq)
-data Transition = Give Location Location | Compare Location Location Location deriving (Show, Eq, Ord)
+data Endpoint = Give Location | Compare Location Location
+data Transition = Transition Location Endpoint
 
 genLocParser :: T.Text -> (Int -> a) -> Parser a
-genLocParser t c = c <$> decimal << string t
+genLocParser t c = c <$> (string t >> decimal)
 
 parseLocation :: Parser Location
 parseLocation = choice [ genLocParser "bot " Bot
@@ -29,7 +30,7 @@ parseGive = do
   loc1 <- parseLocation
   string " goes to "
   loc2 <- parseLocation
-  return $ Give loc1 loc2
+  return $ Transition loc1 (Give loc2)
 
 parseCompare :: Parser Transition
 parseCompare = do
@@ -38,7 +39,7 @@ parseCompare = do
   loc2 <- parseLocation
   string " and high to "
   loc3 <- parseLocation
-  return $ Compare loc1 loc2 loc3
+  return $ Transition loc1 (Compare loc2 loc3)
 
 parser :: Parser Transition
 parser = choice [ parseCompare
@@ -46,47 +47,35 @@ parser = choice [ parseCompare
                 ]
 
 extractLocations :: Transition -> [Location]
-extractLocations (Give a b) = [a, b]
-extractLocations (Compare a b c) = [a, b, c]
+extractLocations (Transition a (Give b)) = [a, b]
+extractLocations (Transition a (Compare b c)) = [a, b, c]
 
 makeContext :: M.Map Location Int -> Transition -> [Context Location Ordering]
-makeContext m (Give a b) =
+makeContext m (Transition a (Give b)) =
   [ ([(EQ, m M.! a)], m M.! b, b, [])
   , ([], m M.! a, a, [])
   ]
-makeContext m (Compare from toLow toHigh) =
+makeContext m (Transition from (Compare toLow toHigh)) =
   [ ([], m M.! from, from, [(LT, m M.! toLow), (GT, m M.! toHigh)])
   , ([], m M.! toLow, toLow, [])
   , ([], m M.! toHigh, toHigh, [])
   ]
 
 makeGraph :: DynGraph g => [Transition] -> g Location Ordering
-makeGraph transitions = buildGr contexts
+makeGraph transitions = mkGraph nodes edges
   where
     locations = transitions >>= sort . nub . extractLocations
     locMap = M.fromList $ zip locations [1..]
     contexts = transitions >>= makeContext locMap
+    nodes = nub . map (\(_, n, l, _) -> (n, l)) $ contexts
+    edgesFromContext (pre, n, l, post) = mconcat
+      [ map (\(label, from) -> (from, n, label)) pre
+      , map (\(label, to) -> (n, to, label)) post
+      ]
+    edges = nub $ contexts >>= edgesFromContext
 
 readGraph :: T.Text -> Gr Location Ordering
 readGraph = makeGraph . mapMaybe (maybeResult . flip feed "" . parse parser) . T.lines
 
-
-type IntermediateSolution = M.Map Location (Maybe Int, Maybe Int)
-
-
-reduceG :: Gr Location Ordering -> IntermediateSolution
-reduceG gr = execState joinedStates
-  where
-    sortedNodes = topsort gr
-    joinedStates = traverse toState contexts
-    toState node = do
-      let (Just (_, _, loc, forward), _) = match node gr
-      m <- get
-
-
-
-reduceI :: IntermediateSolution -> Maybe Location
-reduceI = fst . uncons . map fst . filter ((== (17, Just 61)) . snd) . M.toList
-
-main = T.getContents >>= print . reduceI . reduceG . readGraph
+main = T.getContents >>= putStrLn . showDot . fglToDot . readGraph
 

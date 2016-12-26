@@ -113,6 +113,20 @@ executable advoc2016-day12
                      , array
   default-language:    Haskell2010
 
+
+executable advoc2016-day14
+  hs-source-dirs:      src/Day14
+  main-is:             Main.hs
+  ghc-options:         -threaded -Wunsafe -O2 -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , cryptohash
+                     , bytestring
+                     , parallel
+                     , base16-bytestring
+                     , array
+                     , split
+  default-language:    Haskell2010
+
 source-repository head
   type:     git
   location: https://github.com/TRManderson/advoc2016

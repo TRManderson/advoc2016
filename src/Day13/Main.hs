@@ -2,17 +2,13 @@ module Main where
 import Data.Bits
 import Control.Parallel.Strategies (parList, parListChunk, using, withStrategy, rdeepseq)
 import Data.List (nub)
+import Data.Maybe (fromJust)
 import qualified Data.Map as M
 import Control.Monad
 import Control.Applicative
 import Data.Graph.Inductive hiding (empty)
 import Data.Graph.Inductive.PatriciaTree (Gr(..))
 import Data.Graph.Inductive.Query.SP (spLength)
-import Debug.Trace (traceShow)
-
-m .!. k = case M.lookup k m of
-  Just v -> v
-  Nothing -> traceShow k $ m M.! k
 
 problemInput = 1358 :: Int
 
@@ -46,10 +42,10 @@ problemNodeMap = M.fromList $ map (\(a,b) -> (b,a)) problemNodeList
 problemEdges :: [LEdge Int]
 problemEdges = withStrategy (parList rdeepseq) $ do
   cell <- constrainedCells
-  let sourceNode = problemNodeMap .!. cell
+  let sourceNode = problemNodeMap M.! cell
   resultCell <- uncurry validMoves cell
   if (\(a, b) -> a <= constraint && b <= constraint) resultCell then do
-      let targetNode = problemNodeMap .!. resultCell
+      let targetNode = problemNodeMap M.! resultCell
       return (sourceNode, targetNode, 1)
   else
       []
@@ -61,13 +57,6 @@ startNode = problemNodeMap M.! (1, 1)
 endNode = problemNodeMap M.! (31, 39)
 
 main1 = print $ spLength startNode endNode graph
+main2 = print . filter ((<= 50) . length . unLPath) . spTree startNode $ graph
 
-
--- Part 2 is still dodgy
-type Problem2 = (Int, [(Int, Int)], [(Int, Int)])
-stepProblem2 :: Problem2 -> Problem2
-stepProblem2 (n, xs, ys) = (n+1, withStrategy (parListChunk 100 rdeepseq) $ xs >>= (nub . uncurry validMoves), nub $ xs ++ ys)
-
-main2 = print . length . nub . (\(_,b,c) -> b ++ c) $ until ((== 50) . (\(a, _, _) -> a)) stepProblem2 (0, [(1, 1)], [])
-
-main = main1
+main = main2

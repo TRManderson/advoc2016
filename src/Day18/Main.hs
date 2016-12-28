@@ -20,10 +20,14 @@ nextRow' (a:b:c:xs) = any (apply a b c) preds : nextRow' (b:c:xs)
 nextRow' _ = []
 nextRow xs = nextRow' $ False : (xs ++ [False])
 
-allRows = take 40 . iterate nextRow
+allRows = take numRows . iterate nextRow
 
 pretty = map pretty'
   where pretty' False = '.'
         pretty' True  = '^'
 
 main = join $ print . length . filter not . concat . allRows . parse <$> getLine
+
+numRows1 = 40
+numRows2 = 400000
+numRows = numRows2

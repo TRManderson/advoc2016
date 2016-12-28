@@ -17,6 +17,8 @@ rowParser = do
   char '.'
   return (initial, pos)
 
+pt1 = id
+pt2 = (++ [(0, 11)])
 
 fromList :: [(Int, Int)] -> (Int, [Int], [Int])
 fromList ls = (0, vals, steps)
@@ -32,5 +34,5 @@ isDone (_, vals, steps) = vals == endVals
 main = do
   contents <- T.lines <$> T.getContents
   let inputData = mapMaybe (maybeResult . flip feed "" . parse rowParser) contents
-  let (soln, _, _) = until isDone step . fromList $ inputData
+  let (soln, _, _) = until isDone step . fromList . pt2 $ inputData
   print soln

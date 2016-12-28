@@ -13,9 +13,13 @@ import Control.Arrow
 import Control.Monad
 
 puzzleInput = "zpqevtbw"
+
+hash1 = id
+hash2 = foldr (.) id $ replicate 2016 (hash . encode)
+
 hashes :: [(Int, B.ByteString)]
-hashes = withStrategy (parBuffer (4*numCapabilities) rdeepseq) $
-  map (\idx -> (idx, encode . hash . (puzzleInput <>) . fromString . show $ idx)) [0..]
+hashes = withStrategy (parBuffer (numCapabilities) rseq) $
+  map (\idx -> (idx, encode . hash2 . hash . (puzzleInput <>) . fromString . show $ idx)) [0..]
 
 reductionStrategy :: Int -> Strategy [a]
 reductionStrategy n = parBuffer n rseq
@@ -32,4 +36,6 @@ reducer ((idx, x):xs) = result
 
 keys = withStrategy (reductionStrategy 4)$ reducer hashes
 
-main = print . (!! 63) $ keys
+main = do
+  print numCapabilities
+  traverse print . take 64 $ keys

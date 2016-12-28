@@ -4,7 +4,6 @@ import Data.Monoid ((<>))
 import Crypto.Hash.MD5 (hash)
 import qualified  Data.ByteString.Char8 as B
 import Data.String (fromString)
-import Numeric (showHex)
 import Data.ByteString.Base16 (encode)
 import Control.Parallel.Strategies (withStrategy, parBuffer, r0)
 import GHC.Conc (numCapabilities)

@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
 module Main where
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -96,10 +96,30 @@ apply (Move from to) seq = fromJust $ do
   val <- seq S.!? from
   return . S.insertAt to val . S.deleteAt from $ seq
 
+unapply v@(SwapLetter _ _) = apply v
+unapply (RotateLeft n) = apply (RotateRight n)
+unapply (RotateRight n) = apply (RotateLeft n)
+unapply v@(SwapPos _ _) = apply v
+unapply (Move from to) = apply (Move to from)
+unapply (RotatePos c) = unRotatePos c
+unapply v@(Reverse _ _) = apply v
+
+unRotatePos :: Char -> S.Seq Char -> S.Seq Char
+unRotatePos c seq = apply (RotateLeft $ mv idx) seq
+  where idx = fromJust $ S.elemIndexL c seq
+        mv 1 = 1
+        mv 3 = 2
+        mv 5 = 3
+        mv 7 = 4
+        mv 2 = 6
+        mv 4 = 7
+        mv 6 = 0
+        mv 0 = 1
+
 main = do
   input <- mapMaybe (maybeParser parser . T.pack) . lines <$> getContents
-  let soln = foldl' (flip apply) (S.fromList "abcdefgh") input
-  putStrLn . toList $ soln
-
-
+  let soln1 = foldl' (flip apply) "abcdefgh" input
+  let soln2 = foldr unapply "fbgdceah" input
+  putStrLn . toList $ soln1
+  putStrLn . toList $ soln2
 

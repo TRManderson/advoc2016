@@ -170,6 +170,16 @@ executable advoc2016-day18
   build-depends:       base
   default-language:    Haskell2010
 
+executable advoc2016-day21
+  hs-source-dirs:      src/Day21
+  main-is:             Main.hs
+  ghc-options:         -threaded -Wunsafe -O2 -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , attoparsec
+                     , text
+                     , containers
+  default-language:    Haskell2010
+
 source-repository head
   type:     git
   location: https://github.com/TRManderson/advoc2016

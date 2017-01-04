@@ -170,6 +170,15 @@ executable advoc2016-day18
   build-depends:       base
   default-language:    Haskell2010
 
+
+executable advoc2016-day19
+  hs-source-dirs:      src/Day19
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N1
+  build-depends:       base
+                     , containers
+  default-language:    Haskell2010
+
 executable advoc2016-day21
   hs-source-dirs:      src/Day21
   main-is:             Main.hs
